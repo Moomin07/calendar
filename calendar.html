@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask MADYFICATION</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>MADYFICATION</h1>
+        
+        <!-- Calendar Navigation -->
+        <div class="calendar-nav">
+            <a href="{{ url_for('index', year=prev_year, month=prev_month) }}" class="nav-btn">&#8249; Previous</a>
+            <h2>{{ month_name }} {{ year }}</h2>
+            <a href="{{ url_for('index', year=next_year, month=next_month) }}" class="nav-btn">Next &#8250;</a>
+        </div>
+        
+        <!-- Calendar Grid -->
+        <table class="calendar">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in calendar %}
+                <tr>
+                    {% for day in week %}
+                    <td class="{% if day == 0 %}empty{% elif day == today and month == current_month and year == current_year %}today{% endif %}">
+                        {% if day != 0 %}
+                            <div class="day-number">{{ day }}</div>
+                            {% set date_str = '%04d-%02d-%02d'|format(year, month, day) %}
+                            {% if date_str in events %}
+                                <div class="event-indicators">
+                                    {% for event in events[date_str][:2] %}
+                                    <div class="event-dot" title="{{ event.title }}"></div>
+                                    {% endfor %}
+                                    {% if events[date_str]|length > 2 %}
+                                    <div class="event-more">+{{ events[date_str]|length - 2 }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            <button class="add-event-btn" onclick="showEventForm('{{ date_str }}')">+</button>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Event List for Selected Date -->
+        <div class="events-section">
+            <h3>Events</h3>
+            <div id="events-list">
+                {% for date, date_events in events.items() %}
+                    {% if date.startswith('%04d-%02d'|format(year, month)) %}
+                        <div class="date-events">
+                            <h4>{{ date }}</h4>
+                            {% for event in date_events %}
+                            <div class="event-item">
+                                <div class="event-details">
+                                    <strong>{{ event.title }}</strong>
+                                    {% if event.time %}
+                                    <span class="event-time">{{ event.time }}</span>
+                                    {% endif %}
+                                    {% if event.description %}
+                                    <p class="event-description">{{ event.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ url_for('delete_event', date=date, event_id=event.id) }}" 
+                                   class="delete-btn" onclick="return confirm('Delete this event?')">Delete</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEventForm()">&times;</span>
+            <h2>Add New Event</h2>
+            <form action="{{ url_for('add_event') }}" method="POST">
+                <input type="hidden" id="event-date" name="date">
+                <div class="form-group">
+                    <label for="title">Event Title:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="time">Time (optional):</label>
+                    <input type="time" id="time" name="time">
+                </div>
+                <div class="form-group">
+                    <label for="description">Description (optional):</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Add Event</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function showEventForm(date) {
+            document.getElementById('event-date').value = date;
+            document.getElementById('eventModal').style.display = 'block';
+        }
+        
+        function closeEventForm() {
+            document.getElementById('eventModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            var modal = document.getElementById('eventModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
