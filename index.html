@@ -3,131 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask MADYFICATION</title>
-<link rel="stylesheet" href="static/style.css">
+    <title>Modern Event Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .month-year {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #f8f9fa;
+            padding: 10px 0;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            padding: 15px;
+        }
+
+        .day {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .day:hover {
+            background: #e3f2fd;
+        }
+
+        .current-month {
+            color: #333;
+        }
+
+        .other-month {
+            color: #ccc;
+        }
+
+        .today {
+            background: #4facfe;
+            color: white;
+        }
+
+        .has-events::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: #ff6b6b;
+            border-radius: 50%;
+        }
+
+        .events-panel {
+            padding: 20px;
+            border-top: 2px solid #f1f3f4;
+        }
+
+        .events-title {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        #events-list {
+            min-height: 60px;
+        }
+
+        .event-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .event-date {
+            font-weight: 600;
+            color: #4facfe;
+            margin-right: 10px;
+        }
+
+        .event-text {
+            flex-grow: 1;
+        }
+
+        .delete-event {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .add-event-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #new-event {
+            flex-grow: 1;
+            padding: 10px;
+            border: 2px solid #e3f2fd;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        #new-event:focus {
+            border-color: #4facfe;
+        }
+
+        #add-event-btn {
+            background: #4facfe;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        #add-event-btn:hover {
+            background: #3a9cfc;
+        }
+
+        @media (max-width: 480px) {
+            .calendar-container {
+                max-width: 100%;
+                margin: 10px;
+            }
+            
+            .days-grid {
+                gap: 2px;
+                padding: 10px;
+            }
+            
+            .day {
+                height: 35px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>MADYFICATION</h1>
-        
-        <!-- Calendar Navigation -->
-        <div class="calendar-nav">
-            <a href="{{ url_for('index', year=prev_year, month=prev_month) }}" class="nav-btn">&#8249; Previous</a>
-            <h2>{{ month_name }} {{ year }}</h2>
-            <a href="{{ url_for('index', year=next_year, month=next_month) }}" class="nav-btn">Next &#8250;</a>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <div class="month-year" id="month-year">February 2024</div>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="changeMonth(-1)">←</button>
+                <button class="nav-btn" onclick="goToToday()">Today</button>
+                <button class="nav-btn" onclick="changeMonth(1)">→</button>
+            </div>
         </div>
-        
-        <!-- Calendar Grid -->
-        <table class="calendar">
-            <thead>
-                <tr>
-                    <th>Sun</th>
-                    <th>Mon</th>
-                    <th>Tue</th>
-                    <th>Wed</th>
-                    <th>Thu</th>
-                    <th>Fri</th>
-                    <th>Sat</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for week in calendar %}
-                <tr>
-                    {% for day in week %}
-                    <td class="{% if day == 0 %}empty{% elif day == today and month == current_month and year == current_year %}today{% endif %}">
-                        {% if day != 0 %}
-                            <div class="day-number">{{ day }}</div>
-                            {% set date_str = '%04d-%02d-%02d'|format(year, month, day) %}
-                            {% if date_str in events %}
-                                <div class="event-indicators">
-                                    {% for event in events[date_str][:2] %}
-                                    <div class="event-dot" title="{{ event.title }}"></div>
-                                    {% endfor %}
-                                    {% if events[date_str]|length > 2 %}
-                                    <div class="event-more">+{{ events[date_str]|length - 2 }}</div>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                            <button class="add-event-btn" onclick="showEventForm('{{ date_str }}')">+</button>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        
-        <!-- Event List for Selected Date -->
-        <div class="events-section">
-            <h3>Events</h3>
+
+        <div class="weekdays">
+            <div class="weekday">Sun</div>
+            <div class="weekday">Mon</div>
+            <div class="weekday">Tue</div>
+            <div class="weekday">Wed</div>
+            <div class="weekday">Thu</div>
+            <div class="weekday">Fri</div>
+            <div class="weekday">Sat</div>
+        </div>
+
+        <div class="days-grid" id="days-grid">
+            <!-- Days will be generated by JavaScript -->
+        </div>
+
+        <div class="events-panel">
+            <h3 class="events-title" id="selected-date">Events</h3>
             <div id="events-list">
-                {% for date, date_events in events.items() %}
-                    {% if date.startswith('%04d-%02d'|format(year, month)) %}
-                        <div class="date-events">
-                            <h4>{{ date }}</h4>
-                            {% for event in date_events %}
-                            <div class="event-item">
-                                <div class="event-details">
-                                    <strong>{{ event.title }}</strong>
-                                    {% if event.time %}
-                                    <span class="event-time">{{ event.time }}</span>
-                                    {% endif %}
-                                    {% if event.description %}
-                                    <p class="event-description">{{ event.description }}</p>
-                                    {% endif %}
-                                </div>
-                                <a href="{{ url_for('delete_event', date=date, event_id=event.id) }}" 
-                                   class="delete-btn" onclick="return confirm('Delete this event?')">Delete</a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endfor %}
+                <!-- Events will be shown here -->
+            </div>
+            <div class="add-event-form">
+                <input type="text" id="new-event" placeholder="Add new event...">
+                <button id="add-event-btn" onclick="addEvent()">Add</button>
             </div>
         </div>
     </div>
-    
-    <!-- Add Event Modal -->
-    <div id="eventModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEventForm()">&times;</span>
-            <h2>Add New Event</h2>
-            <form action="{{ url_for('add_event') }}" method="POST">
-                <input type="hidden" id="event-date" name="date">
-                <div class="form-group">
-                    <label for="title">Event Title:</label>
-                    <input type="text" id="title" name="title" required>
-                </div>
-                <div class="form-group">
-                    <label for="time">Time (optional):</label>
-                    <input type="time" id="time" name="time">
-                </div>
-                <div class="form-group">
-                    <label for="description">Description (optional):</label>
-                    <textarea id="description" name="description" rows="3"></textarea>
-                </div>
-                <button type="submit" class="submit-btn">Add Event</button>
-            </form>
-        </div>
-    </div>
-    
+
     <script>
-        function showEventForm(date) {
-            document.getElementById('event-date').value = date;
-            document.getElementById('eventModal').style.display = 'block';
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        let selectedDate = null;
+        let events = JSON.parse(localStorage.getItem('calendarEvents')) || {};
+
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        function generateCalendar() {
+            const daysGrid = document.getElementById('days-grid');
+            daysGrid.innerHTML = '';
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            // Previous month's days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = document.createElement('div');
+                day.className = 'day other-month';
+                day.textContent = daysInPrevMonth - i;
+                daysGrid.appendChild(day);
+            }
+
+            // Current month's days
+            const today = new Date();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement('div');
+                day.className = 'day current-month';
+                day.textContent = i;
+
+                // Check if today
+                if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                    day.classList.add('today');
+                }
+
+                // Check for events
+                const dateKey = `${currentYear}-${currentMonth + 1}-${i}`;
+                if (events[dateKey] && events[dateKey].length > 0) {
+                    day.classList.add('has-events');
+                }
+
+                day.onclick = () => selectDate(i);
+                daysGrid.appendChild(day);
+            }
+
+            // Next month's days
+            const totalCells = 42; // 6 weeks * 7 days
+            const remainingCells = totalCells - (firstDay + daysInMonth);
+            for (let i = 1; i <= remainingCells; i++) {
+                const day = document.createElement('div');
+                day.className = 'day other-month';
+                day.textContent = i;
+                daysGrid.appendChild(day);
+            }
+
+            document.getElementById('month-year').textContent = 
+                `${months[currentMonth]} ${currentYear}`;
         }
-        
-        function closeEventForm() {
-            document.getElementById('eventModal').style.display = 'none';
+
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar();
         }
-        
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            var modal = document.getElementById('eventModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
+
+        function goToToday() {
+            currentDate = new Date();
+            currentMonth = currentDate.getMonth();
+            currentYear = currentDate.getFullYear();
+            generateCalendar();
+            selectDate(currentDate.getDate());
+        }
+
+        function selectDate(day) {
+            selectedDate = new Date(currentYear, currentMonth, day);
+            const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
+            
+            document.getElementById('selected-date').textContent = 
+                `Events for ${months[currentMonth]} ${day}, ${currentYear}`;
+            
+            const eventsList = document.getElementById('events-list');
+            eventsList.innerHTML = '';
+
+            if (events[dateKey]) {
+                events[dateKey].forEach((event, index) => {
+                    const eventItem = document.createElement('div');
+                    eventItem.className = 'event-item';
+                    eventItem.innerHTML = `
+                        <span class="event-text">${event}</span>
+                        <button class="delete-event" onclick="deleteEvent('${dateKey}', ${index})">Delete</button>
+                    `;
+                    eventsList.appendChild(eventItem);
+                });
+            }
+
+            if (!events[dateKey] || events[dateKey].length === 0) {
+                eventsList.innerHTML = '<div>No events scheduled for this date.</div>';
             }
         }
+
+        function addEvent() {
+            if (!selectedDate) {
+                alert('Please select a date first!');
+                return;
+            }
+
+            const eventInput = document.getElementById('new-event');
+            const eventText = eventInput.value.trim();
+
+            if (!eventText) {
+                alert('Please enter an event!');
+                return;
+            }
+
+            const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth() + 1}-${selectedDate.getDate()}`;
+            
+            if (!events[dateKey]) {
+                events[dateKey] = [];
+            }
+
+            events[dateKey].push(eventText);
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+            
+            eventInput.value = '';
+            selectDate(selectedDate.getDate());
+            generateCalendar(); // Refresh calendar to show event indicators
+        }
+
+        function deleteEvent(dateKey, index) {
+            events[dateKey].splice(index, 1);
+            if (events[dateKey].length === 0) {
+                delete events[dateKey];
+            }
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+            selectDate(selectedDate.getDate());
+            generateCalendar(); // Refresh calendar to update event indicators
+        }
+
+        // Initialize calendar
+        generateCalendar();
+        goToToday();
     </script>
 </body>
 </html>
