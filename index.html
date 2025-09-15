@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Event Calendar</title>
+    <title>MADYFICATION Calendar</title>
     <style>
         * {
             margin: 0;
@@ -35,12 +35,25 @@
             color: white;
             padding: 20px;
             text-align: center;
+            position: relative;
+        }
+
+        .brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .month-year {
             font-size: 1.5rem;
             font-weight: 300;
             margin-bottom: 10px;
+            color: white;
         }
 
         .nav-buttons {
@@ -150,12 +163,6 @@
             align-items: center;
         }
 
-        .event-date {
-            font-weight: 600;
-            color: #4facfe;
-            margin-right: 10px;
-        }
-
         .event-text {
             flex-grow: 1;
         }
@@ -208,6 +215,10 @@
                 margin: 10px;
             }
             
+            .brand {
+                font-size: 1.5rem;
+            }
+            
             .days-grid {
                 gap: 2px;
                 padding: 10px;
@@ -223,6 +234,7 @@
 <body>
     <div class="calendar-container">
         <div class="calendar-header">
+            <div class="brand">MADYFICATION</div>
             <div class="month-year" id="month-year">February 2024</div>
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="changeMonth(-1)">←</button>
